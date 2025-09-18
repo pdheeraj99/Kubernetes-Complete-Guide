@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: annotations-demo
+  annotations:
+    imageregistry: "https://hub.docker.com/"
+    owner: "JulesTheK8sMaster"
+    description: "This is a demo pod to showcase annotations. It runs a simple nginx server."
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80
