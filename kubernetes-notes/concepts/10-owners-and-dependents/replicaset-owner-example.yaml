@@ -1,0 +1,27 @@
+# Ee file manam cluster lo apply cheste, adi oka ReplicaSet ni create chestundi.
+# Aa ReplicaSet ventane 3 Pods ni create cheyadaniki try chestundi.
+# Appudu, Kubernetes aa 3 Pods ki, ee ReplicaSet ni owner ga set chestundi.
+#
+# How to verify?
+# 1. Run `kubectl apply -f replicaset-owner-example.yaml`
+# 2. Run `kubectl get pods` to find the names of the new pods (e.g., my-app-rs-xxxxx)
+# 3. Run `kubectl get pod <pod-name> -o yaml`
+# 4. Aa pod yokka YAML output lo `metadata.ownerReferences` section chudandi. Adi automatic ga create avthundi!
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: my-app-rs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-nginx-pods
+  template:
+    metadata:
+      labels:
+        app: my-nginx-pods
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.16.1

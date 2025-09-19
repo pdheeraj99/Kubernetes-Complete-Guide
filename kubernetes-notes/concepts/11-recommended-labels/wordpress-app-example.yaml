@@ -1,0 +1,75 @@
+# Ee YAML file lo manam oka complete WordPress application ni chustunnam.
+# Deenilo rendu main parts unnayi:
+# 1. WordPress web server (oka Deployment la)
+# 2. MySQL database (oka StatefulSet la)
+#
+# Observe the labels in both resources. Recommended labels use cheyadam valla,
+# ee rendu veru veru objects ayina, antha "wordpress" ane application lo
+# bhagam ani manaki clear ga telustondi.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  labels:
+    app.kubernetes.io/name: wordpress
+    app.kubernetes.io/instance: wordpress-xyz
+    app.kubernetes.io/version: "6.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wordpress
+      app.kubernetes.io/instance: wordpress-xyz
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wordpress
+        app.kubernetes.io/instance: wordpress-xyz
+        app.kubernetes.io/component: server
+    spec:
+      containers:
+      - name: wordpress
+        image: wordpress:6.0
+        ports:
+        - containerPort: 80
+          name: wordpress
+---
+# Ee '---' separator cheptundi, ikkada nunchi inko kotha K8s object start avutondi ani.
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/instance: mysql-abc
+    app.kubernetes.io/version: "8.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: wordpress
+spec:
+  # ... (StatefulSet spec would be here) ...
+  # Manam ippudu just labels meeda focus chestunnam kabatti,
+  # spec ni simple ga uncham.
+  serviceName: "mysql"
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mysql
+      app.kubernetes.io/instance: mysql-abc
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mysql
+        app.kubernetes.io/instance: mysql-abc
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        ports:
+        - containerPort: 3306
+          name: mysql
