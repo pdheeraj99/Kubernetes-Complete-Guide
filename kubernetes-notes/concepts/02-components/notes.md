@@ -1,8 +1,12 @@
 # ⚙️ Chapter 2: Kubernetes Components - The Heart of the Machine ⚙️
 
-Namaste Champion! Mana last chapter lo K8s enduku vachindo chusam. Ippudu, aa magic chese components gurinchi thelusukundam. Think of it like opening up a super-computer to see what's inside! Konchem concentration pedithe, idi chala easy. Let's go! 🔥
+Namaste, Champion! Mana last chapter lo K8s enduku vachindo chusam. Ippudu, aa magic chese components gurinchi thelusukundam. Think of it like opening up a super-computer to see what's inside! Konchem concentration pedithe, idi chala easy. Let's go! 🔥
 
-Oka Kubernetes cluster lo manaki **Control Plane** and **Worker Nodes** untayi. Simple ga cheppalante, Control Plane anedi manager (or brain 🧠), and Worker Nodes anevi employees (or hands 🙌).
+**What we will learn in this chapter:**
+-   The two main parts of a K8s cluster: The **Control Plane** (The Brain 🧠) and the **Worker Nodes** (The Hands 🙌).
+-   Prathi part lo unna individual components and vaati responsibilities.
+
+Oka Kubernetes cluster lo manaki **Control Plane** and **Worker Nodes** untayi. Simple ga cheppalante, Control Plane anedi manager, and Worker Nodes anevi employees.
 
 Ee diagram chudandi, high level lo architecture ela untundo clear ga ardham avthundi.
 
@@ -22,7 +26,7 @@ graph TD
         CCM -- "Interacts with Cloud APIs" --> API
     end
 
-    subgraph Worker Node 1 (Employee 1)
+    subgraph "Worker Node 1 (Employee 1)"
         direction TB
         KUBELET1[kubelet]
         PROXY1[kube-proxy]
@@ -31,7 +35,7 @@ graph TD
         CR1 --> POD2[Pod - App B]
     end
 
-    subgraph Worker Node 2 (Employee 2)
+    subgraph "Worker Node 2 (Employee 2)"
         direction TB
         KUBELET2[kubelet]
         PROXY2[kube-proxy]
@@ -44,7 +48,7 @@ graph TD
     KUBELET1 -- "Manages network rules" --> PROXY1
     KUBELET2 -- "Manages network rules" --> PROXY2
 
-    style Control Plane fill:#d3d3d3,stroke:#333,stroke-width:2px
+    style "Control Plane" fill:#d3d3d3,stroke:#333,stroke-width:2px
     style "Worker Node 1" fill:#f2f2f2,stroke:#333,stroke-width:2px
     style "Worker Node 2" fill:#f2f2f2,stroke:#333,stroke-width:2px
 ```
@@ -53,12 +57,13 @@ Ippudu prathi component gurinchi detail ga chuddam.
 
 ## A. Control Plane Components (The Manager/Brain 🧠)
 
-Control Plane anedi cluster ki brain lantiది. It makes all the global decisions about the cluster (e.g., scheduling) and also detects and responds to cluster events. Ee components anni ayna Master Node lo run avthayi.
+Control Plane anedi cluster ki brain lantiది. It makes all the global decisions about the cluster (e.g., scheduling) and also detects and responds to cluster events. Ee components anni ayna **Master Node** lo run avthayi.
 
 1.  **`kube-apiserver`**:
     -   Idi Control Plane ki main entry point. Think of it as the **Front Desk or Receptionist** of our company.
     -   Manam `kubectl` use chesi commands isthe, avi first ee API server ke velthayi.
-    -   It exposes the Kubernetes API. Migatha components anni deenithone matladathayi. Vere components direct ga `etcd` tho matladavu, only API server matrame matladuthundi. Security! 🫡
+    -   It exposes the **Kubernetes API**. Migatha components anni deenithone matladathayi. (Manam deeni gurinchi Chapter 12 lo inka detail ga chusam!)
+    -   Vere components direct ga `etcd` tho matladavu, only API server matrame matladuthundi. Security! 🫡
 
 2.  **`etcd`**:
     -   Idi mana cluster ki **Database**. Specifically, it's a consistent and highly-available key-value store.
@@ -67,12 +72,12 @@ Control Plane anedi cluster ki brain lantiది. It makes all the global decisi
 
 3.  **`kube-scheduler`**:
     -   Idi mana company lo **HR Recruiter** lanti వాడు.
-    -   New ga create ayina Pods ki (employees ki) ye Node (desk) assign cheyalo decide chestundi.
+    -   New ga create ayina **Pods** ki (employees ki) ye **Node** (desk) assign cheyalo decide chestundi. (Pods and Nodes gurinchi manam `Workloads` and `Cluster Architecture` sections lo nerchukuntam).
     -   It watches for newly created Pods that have no assigned node, and selects a node for them to run on based on resource requirements, policies, etc.
 
 4.  **`kube-controller-manager`**:
     -   Idi mana company lo unna **different department managers** (like HR Manager, Finance Manager) kalipina oka component.
-    -   It runs controllers, which are background threads that handle routine tasks in the cluster.
+    -   It runs **controllers**, which are background threads that handle routine tasks in the cluster. (Manam `Controllers` gurinchi `Cluster Architecture` section lo detail ga chuddam).
     -   Logically, each controller is a separate process, but to reduce complexity, they are all compiled into a single binary and run in a single process.
     -   Konni examples: Node Controller, Job Controller, EndpointSlice Controller, ServiceAccount Controller.
 
@@ -83,7 +88,7 @@ Control Plane anedi cluster ki brain lantiది. It makes all the global decisi
 
 ## B. Node Components (The Employees/Hands 🙌)
 
-Ee components prathi worker node lo run avthayi. Pods ni run chesi, Kubernetes runtime environment ni provide chestayi.
+Ee components prathi **worker node** lo run avthayi. **Pods** ni run chesi, Kubernetes runtime environment ni provide chestayi.
 
 1.  **`kubelet`**:
     -   Idi prathi node lo unde **Agent or Supervisor**.
@@ -93,7 +98,7 @@ Ee components prathi worker node lo run avthayi. Pods ni run chesi, Kubernetes r
 2.  **`kube-proxy`**:
     -   Idi prathi node lo unde **Network Magician**.
     -   It maintains network rules on nodes. Ee network rules valla, mana pods network communication (inside or outside the cluster) cheyagalugutayi.
-    -   Basically, Kubernetes [Services](./../services-networking/service/) concept ni implement cheyadaniki idi help chestundi.
+    -   Basically, Kubernetes **Services** concept ni implement cheyadaniki idi help chestundi. (Manam `Services` gurinchi networking section lo chala detail ga nerchukuntam!).
 
 3.  **`Container Runtime`**:
     -   Idi asalu container ni run chese software. The **Engine** of the car.
@@ -103,11 +108,12 @@ Ee components prathi worker node lo run avthayi. Pods ni run chesi, Kubernetes r
 ## C. Addons
 
 Addons anevi Kubernetes cluster functionality ni extend chese pods and services.
-
 *   **DNS:** Cluster-wide DNS service. CoreDNS anedi popular option.
 *   **Web UI (Dashboard):** Cluster ni manage cheyadaniki oka graphical interface.
 *   **Container Resource Monitoring:** Prometheus lanti tools tho container metrics collect cheyadaniki.
 *   **Cluster-level Logging:** Logs anni oka central place lo save cheyadaniki.
+
+> **🧠 Key Takeaway:** The **Control Plane** is the brain that makes decisions. The **Worker Nodes** are the hands that do the actual work of running our containers. The `kube-apiserver` is the only way they all talk to each other.
 
 ---
 

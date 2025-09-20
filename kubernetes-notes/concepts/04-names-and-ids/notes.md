@@ -4,6 +4,11 @@ Welcome back, Champion! Last chapter lo manam K8s objects gurinchi nerchukunnam.
 
 Ee topic simple ga anipinchina, cluster ni organized ga unchukovadaniki chala important.
 
+**What we will learn in this chapter:**
+-   The two identifiers for every K8s object: the human-friendly `Name` and the system-generated `UID`.
+-   The rules for naming your objects.
+-   The critical difference between them (a guaranteed interview question!).
+
 ## 1. The Two Identifiers: Name vs. UID
 
 Kubernetes lo prathi object ki rendu identifiers untayi:
@@ -13,23 +18,23 @@ Kubernetes lo prathi object ki rendu identifiers untayi:
 ### 👉 Name
 
 -   Idi manam object create chesetappudu `metadata` section lo istham. (e.g., `name: my-first-pod`).
--   **Uniqueness Rule:** Oka `namespace` lo, oka `kind` (type) of object ki, okate peru undali.
+-   **Uniqueness Rule:** Oka **`namespace`** lo, oka **`kind`** (type) of object ki, okate peru undali.
     -   Ante, `default` namespace lo `my-pod` ane peru tho okate Pod undagaladu.
-    -   Kani, `default` namespace lo `my-pod` ane peru tho oka Pod and `my-pod` ane peru tho oka Service undochu. Kind veru kabatti, problem ledu.
-    -   Also, `default` namespace lo `my-pod` ane Pod, and `test` namespace lo `my-pod` ane Pod undochu. Namespace veru kabatti, problem ledu.
+    -   Kani, `default` namespace lo `my-pod` ane peru tho oka Pod and `my-pod` ane peru tho oka **Service** undochu. Kind veru kabatti, problem ledu.
+    -   Also, `default` namespace lo `my-pod` ane Pod, and `test` **namespace** lo `my-pod` ane Pod undochu. Namespace veru kabatti, problem ledu. (We will learn all about this isolation in **Chapter 7: Namespaces**).
 
 ```mermaid
 graph TD
-    subgraph Namespace: default
+    subgraph "Namespace: default"
         P1["Pod: my-app"]
         S1["Service: my-app"]
     end
 
-    subgraph Namespace: test
+    subgraph "Namespace: test"
         P2["Pod: my-app"]
     end
 
-    subgraph Namespace: production
+    subgraph "Namespace: production"
         P3["Pod: my-app"]
     end
 
@@ -45,6 +50,7 @@ graph TD
 #### Naming Conventions (Perlu Ela Pettali?)
 
 Perlu pettadaniki konni rules unnayi. Most resources require names that can be used as **DNS Subdomain Names (RFC 1123)**.
+-   **Why DNS names?** Because object names are often used in the cluster's internal DNS system (e.g., for Services). So the names must be DNS-compatible.
 -   Max 253 characters.
 -   Only lowercase alphanumeric characters, '-', or '.'
 -   Must start and end with an alphanumeric character.
@@ -55,9 +61,11 @@ Perlu pettadaniki konni rules unnayi. Most resources require names that can be u
 
 -   Idi Kubernetes system generate chestundi. Manam ivvamu.
 -   It is **unique across the entire cluster for all time**.
--   Analogy: Mana `Name` laంటిది K8s object `Name`. Mana `Aadhaar Card Number` లాంటిది K8s object `UID`. Peru maarochu (object delete chesi create cheste), kani Aadhaar number la UID eppatiki unique ga untundi.
+-   **Analogy:** Mana `Name` laంటిది K8s object `Name`. Mana `Aadhaar Card Number` లాంటిది K8s object `UID`. Peru maarochu (object delete chesi create cheste), kani Aadhaar number la UID eppatiki unique ga untundi.
 -   Even if you delete an object and create a new one with the same name, the new object will have a completely different UID.
--   This helps Kubernetes distinguish between an object that was deleted and a new one that just happens to have the same name. It's crucial for reliability.
+-   **Why is this important?** This helps Kubernetes distinguish between an object that was deleted and a new one that just happens to have the same name. Idi lekapothe, **Garbage Collection** and **Finalizers** (which we will learn about soon) lanti concepts pani cheyavu. It's crucial for reliability.
+
+> **🧠 Key Takeaway:** Use **Names** for human-readable identification within a namespace. Rely on **UIDs** for guaranteed, unique identification across all time and space in your cluster.
 
 ## Summary Table
 

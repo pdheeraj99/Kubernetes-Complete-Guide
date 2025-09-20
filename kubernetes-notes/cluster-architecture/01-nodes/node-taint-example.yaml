@@ -1,0 +1,40 @@
+# Ee file lo manam Taints and Tolerations concept ni practice cheddam.
+# Manam direct ga Node ni create cheyam, kani oka Pod ni create cheddam
+# daaniki oka special "VIP Pass" (Toleration) ichi.
+
+# How to test this concept:
+# 1. First, pick one of your nodes:
+#    `kubectl get nodes`
+#
+# 2. Add a "Taint" (No Entry sign) to that node.
+#    `kubectl taint nodes <your-node-name> gpu=true:NoSchedule`
+#
+# 3. Now, try to create a normal pod without any toleration. It will get stuck in "Pending" state.
+#    `kubectl run normal-pod --image=nginx`
+#    `kubectl get pods` (chudu, 'normal-pod' anedi 'Pending' lo untundi)
+#
+# 4. Ippudu, ee file ni apply chey. Ee Pod ki VIP pass undi kabatti, adi tainted node meeda schedule avthundi!
+#    `kubectl apply -f node-taint-example.yaml`
+#    `kubectl get pods` (chudu, 'tainted-pod' anedi 'Running' lo untundi!)
+#
+# 5. Cleanup cheyadaniki, don't forget to remove the taint from your node!
+#    `kubectl taint nodes <your-node-name> gpu=true:NoSchedule-`
+#    `kubectl delete pod tainted-pod`
+#    `kubectl delete pod normal-pod`
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tainted-pod
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+  tolerations:
+  # Ikkada undi mana VIP Pass!
+  # Ee Pod, `gpu=true:NoSchedule` ane taint ni tolerate cheyagaladu.
+  - key: "gpu"
+    operator: "Exists"
+    effect: "NoSchedule"

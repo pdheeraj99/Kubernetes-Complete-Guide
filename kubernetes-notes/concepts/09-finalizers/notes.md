@@ -6,11 +6,16 @@ For example, oka `PersistentVolume` object ni delete cheste, daaniki link ayina 
 
 Ee problem solve cheyadanike manaki **Finalizers** unnayi.
 
+**What we will learn in this chapter:**
+-   What Finalizers are and why they are the "guardians" of deletion.
+-   The step-by-step flow of how Kubernetes handles deleting an object that has a finalizer.
+-   A real-world example with Persistent Volumes.
+
 ## 1. What are Finalizers?
 
--   Finalizers are special keys that you add to an object's `metadata`.
+-   Finalizers are special keys that you add to an object's `metadata.finalizers` list.
 -   They tell Kubernetes: "**Hey! Nannu delete chese mundu, konni panulu cheyali. Aa panulu ayyevaraku nannu delete cheyaku.**" (Before you delete me, some tasks need to be done. Don't delete me until they are finished).
--   They are essentially a list of conditions that must be met before an object is actually removed from the cluster.
+-   Ee "cleanup work" anedi chala important. It could be deleting dependent objects (which we'll learn about in the next chapter on **Owners and Dependents**) or releasing an external resource like a cloud load balancer.
 -   They act as **guardians** 🛡️, preventing accidental deletion of resources that still have cleanup to do.
 
 ## 2. How Finalizers Work (The Deletion Flow)
@@ -37,16 +42,16 @@ sequenceDiagram
     Note right of Object: Object is now in "Terminating" state.<br/>It is NOT deleted yet!
 
     Controller->>APIServer: 3. Watches for object updates
-    Note over Controller, APIServer: Sees the `deletionTimestamp`!
+    Note over Controller, APIServer: Sees the `deletionTimestamp`! Time for cleanup!
 
-    Controller->>Controller: 4. Performs cleanup logic<br/>(e.g., delete cloud disk, etc.)
+    Controller->>Controller: 4. Performs cleanup logic<br/>(e.g., delete cloud disk, delete dependents)
 
-    Controller->>APIServer: 5. Cleanup done! Remove my finalizer key.
-    APIServer-->>Object: 6. Removes finalizer from `metadata.finalizers` list
+    Controller->>APIServer: 5. Cleanup done! Remove MY finalizer key.
+    APIServer-->>Object: 6. Removes specific finalizer from `metadata.finalizers` list
 
     Note over APIServer, Object: Is the `finalizers` list empty now? Yes!
 
-    APIServer-->>Object: 7. The object is now TRULY deleted.
+    APIServer-->>Object: 7. The object is now TRULY deleted from etcd.
 ```
 
 **Step-by-step Breakdown:**
@@ -56,14 +61,16 @@ sequenceDiagram
 3.  If it does, the API server **does not delete the object**. Instead, it just adds a `deletionTimestamp` to the object's metadata. The object is now in a `Terminating` state.
 4.  The controller that manages that resource (and its finalizer) is always watching. It sees the `deletionTimestamp` and understands that it's time to do its cleanup job.
 5.  The controller performs its logic (e.g., calls the cloud provider's API to delete a disk).
-6.  Once the cleanup is successful, the controller sends another request to the API server to **remove its finalizer key** from the `metadata.finalizers` list.
+6.  Once the cleanup is successful, the controller sends another request to the API server to **remove its own finalizer key** from the `metadata.finalizers` list.
 7.  The API server removes the key. It then checks if the `finalizers` list is now empty.
 8.  Once the list is empty, Kubernetes knows all cleanup is done, and it finally deletes the object for good.
+
+**Pro Tip 🕵️‍♂️:** Sometimes an object gets stuck in the `Terminating` state. This usually means a controller is unable to remove its finalizer. You can find these stuck objects using the **Field Selector** we learned about in the last chapter! `kubectl get all --field-selector metadata.deletionTimestamp!=""`
 
 ## 3. An Example: `kubernetes.io/pv-protection`
 
 -   A very common finalizer is `kubernetes.io/pv-protection`.
--   When you attach a `PersistentVolume` (which represents a physical storage disk) to a Pod, Kubernetes automatically adds this finalizer to the `PersistentVolume` object.
+-   When you attach a `PersistentVolume` (which we'll learn about in the `Storage` section) to a Pod, Kubernetes automatically adds this finalizer to the `PersistentVolume` object.
 -   If you try to delete the `PersistentVolume` while a Pod is still using it, the finalizer will be present. The deletion will be blocked. The `PV` will be stuck in the `Terminating` state.
 -   Once you detach the Pod from the volume, the controller will see that it's safe to delete, remove the finalizer, and the `PV` will be deleted. This prevents data loss!
 
